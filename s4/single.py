@@ -3,8 +3,8 @@ from typing import List
 import torch
 import torch.nn as nn
 
-from s4.s4 import S4Block
-from s4.s4d import S4D
+from .lib.s4 import S4Block
+from .lib.s4d import S4D
 
 
 class SingleS4(nn.Module):

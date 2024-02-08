@@ -1,7 +1,7 @@
 import torch
 from skorch import NeuralNet
 
-from single import SingleS4Regression, SingleS4Classifier
+from .single import SingleS4Regression, SingleS4Classifier
 
 
 class S4Regression(NeuralNet):
