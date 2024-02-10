@@ -14,7 +14,7 @@ class SingleS4(nn.Module):
         d_input: int,
         d_model: int,
         n_layers: int,
-        dropout: List[int],
+        dropout: List[float],
         transposed,
         device="cpu",
         s4d=True,
@@ -78,7 +78,7 @@ class SingleS4Regression(SingleS4):
         d_output: int,
         d_model: int,
         n_layers: int,
-        dropout: List[int],
+        dropout: List[float],
         transposed,
         device="cpu",
         s4d=True,
@@ -104,10 +104,11 @@ class SingleS4Classifier(SingleS4):
         d_output: int,
         d_model: int,
         n_layers: int,
-        dropout: List[int],
+        dropout: List[float],
         transposed,
         device="cpu",
         s4d=True,
+        dim=1,
     ):
         super().__init__(
             d_input=d_input,
@@ -118,4 +119,6 @@ class SingleS4Classifier(SingleS4):
             device=device,
             s4d=s4d,
         )
-        self.decoder = nn.Sequential(nn.Linear(d_model, d_output), nn.LogSoftmax(dim=2))
+        self.decoder = nn.Sequential(
+            nn.Linear(d_model, d_output), nn.LogSoftmax(dim=dim)
+        )

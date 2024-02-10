@@ -63,6 +63,7 @@ class S4Classifier(NeuralNet):
         lr,
         batch_size,
         criterion,
+        dim=1,
         # train_split_ratio=0.2,
     ):
         super().__init__(
@@ -74,6 +75,7 @@ class S4Classifier(NeuralNet):
                 dropout=dropout,
                 transposed=transposed,
                 s4d=s4d,
+                dim=dim,
             ),
             max_epochs=max_epochs,
             optimizer=optimizer,
