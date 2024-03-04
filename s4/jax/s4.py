@@ -361,9 +361,7 @@ if False:
 
 
 def K_conv(Ab, Bb, Cb, L):
-    return np.array(
-        [(Cb @ matrix_power(Ab, l) @ Bb).reshape() for l in range(L)]
-    )
+    return np.array([(Cb @ matrix_power(Ab, l) @ Bb).reshape() for l in range(L)])
 
 
 # Warning: this implementation is naive and unstable. In practice it will fail to work
@@ -380,7 +378,7 @@ def causal_convolution(u, K, nofft=False):
     if nofft:
         return convolve(u, K, mode="full")[: u.shape[0]]
     else:
-        assert K.shape[0] == u.shape[0]
+        assert K.shape[0] == u.shape[0], f"{K.shape[0]=} is not equal to {u.shape[0]=}"
         ud = np.fft.rfft(np.pad(u, (0, K.shape[0])))
         Kd = np.fft.rfft(np.pad(K, (0, u.shape[0])))
         out = ud * Kd
@@ -1197,9 +1195,7 @@ def test_conversion(N=8, L=16):
     y1 = causal_convolution(u, K.real)
 
     # Apply RNN
-    _, y2 = scan_SSM(
-        Ab, Bb, Cb, u[:, np.newaxis], np.zeros((N,)).astype(np.complex64)
-    )
+    _, y2 = scan_SSM(Ab, Bb, Cb, u[:, np.newaxis], np.zeros((N,)).astype(np.complex64))
     assert np.allclose(y1, y2.reshape(-1).real, atol=1e-4, rtol=1e-4)
 
 
@@ -1315,7 +1311,7 @@ S4Layer = cloneLayer(S4Layer)
 # Factory for constant initializer in Flax
 def init(x):
     def _init(key, shape):
-        assert shape == x.shape
+        assert shape == x.shape, f"{shape=} is not equal to {x.shape=}"
         return x
 
     return _init
@@ -1461,9 +1457,7 @@ def sample_image_prefix(
             break
 
         image = im[0].numpy()
-        image = np.pad(
-            image[:, :-1, :], [(0, 0), (1, 0), (0, 0)], constant_values=0
-        )
+        image = np.pad(image[:, :-1, :], [(0, 0), (1, 0), (0, 0)], constant_values=0)
         cur = onp.array(image)
         # cur[:, START + 1 :, 0] = 0
         # cur = np.pad(cur[:, :-1, 0], [(0, 0), (1, 0)], constant_values=256)
