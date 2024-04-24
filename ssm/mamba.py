@@ -1,7 +1,6 @@
-import torch
 import torch.nn as nn
 
-from mamba.sequential import Mamba, ModelArgs
+from mamba.lib.sequential import Mamba, ModelArgs
 
 
 class MambaRegression(Mamba):
