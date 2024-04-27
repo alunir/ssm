@@ -21,34 +21,11 @@ Glossary:
 """
 
 from __future__ import annotations
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dataclasses import dataclass
 from einops import rearrange, repeat, einsum
-from typing import Union
-
-
-@dataclass
-class ModelArgs:
-    d_input: int
-    d_model: int
-    d_output: int
-    n_layer: int
-    d_state: int = 16
-    expand: int = 2
-    dt_rank: Union[int, str] = "auto"
-    d_conv: int = 4
-    conv_bias: bool = True
-    bias: bool = False
-    device: str = "cpu"
-
-    def __post_init__(self):
-        self.d_inner = int(self.expand * self.d_model)
-
-        if self.dt_rank == "auto":
-            self.dt_rank = math.ceil(self.d_model / 16)
+from .args import ModelArgs
 
 
 class Mamba(nn.Module):
@@ -57,7 +34,6 @@ class Mamba(nn.Module):
         super().__init__()
         self.args = args
 
-        self.encoder = nn.Sequential(nn.Linear(args.d_input, args.d_model), nn.GELU())
         self.layers = nn.ModuleList([ResidualBlock(args) for _ in range(args.n_layer)])
         self.norm_f = RMSNorm(args.d_model)
 
@@ -77,15 +53,18 @@ class Mamba(nn.Module):
             class MambaLMHeadModel, https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L173
 
         """
-        x = self.encoder(x)
-        x = x.reshape(x.shape[0], self.args.d_model)
-        # print(f"{x.shape=}")
+        batch, seqlen, dim = x.shape
 
         for layer in self.layers:
             x = layer(x)
 
+        # print(f"1:{x.shape=}")
         x = self.norm_f(x)
+        # print(f"2:{x.shape=}")
 
+        assert x.shape == (batch, seqlen, dim), f"{x.shape=}"
+
+        x = x.reshape(batch, -1)
         x = self.decoder(x)
         return x
 
@@ -167,8 +146,6 @@ class MambaBlock(nn.Module):
             mamba_inner_ref(), https://github.com/state-spaces/mamba/blob/main/mamba_ssm/ops/selective_scan_interface.py#L311
 
         """
-        # print(f"forward {x.shape=}")
-        x = x.reshape(x.shape[0], -1, self.args.d_model)
         (b, l, d) = x.shape
 
         x_and_res = self.in_proj(x)  # shape (b, l, 2 * d_in)
