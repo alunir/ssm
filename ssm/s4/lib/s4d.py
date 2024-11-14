@@ -178,6 +178,7 @@ class S4D(nn.Module):
 
         # Compute SSM Kernel
         k = self.kernel(L=L) # (H L)
+        k = k.to(u.device)
 
         # Convolution
         k_f = torch.fft.rfft(k, n=2*L) # (H L)

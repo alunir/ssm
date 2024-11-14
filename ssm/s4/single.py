@@ -22,10 +22,10 @@ class SingleS4(nn.Module):
         super().__init__()
         self.device = device
 
-        self.encoder = nn.Sequential(nn.Linear(d_input, d_model), nn.GELU())
+        self.encoder = nn.Sequential(nn.Linear(d_input, d_model), nn.GELU()).to(self.device)
         if s4d:
             self.layers = [
-                S4D(d_model=d_model, dropout=dropout[i], transposed=transposed)
+                S4D(d_model=d_model, dropout=dropout[i], transposed=transposed).to(self.device)
                 for i in range(n_layers)
             ]
         else:
@@ -35,7 +35,7 @@ class SingleS4(nn.Module):
                     dropout=dropout[i],
                     transposed=transposed,
                     final_act="glu",
-                )
+                ).to(self.device)
                 for i in range(n_layers)
             ]
 
@@ -45,6 +45,7 @@ class SingleS4(nn.Module):
             layer.setup_step()
 
     def forward(self, x):
+        x = x.to(self.device)
         x = self.encoder(x)
         for layer in self.layers:
             x, state = layer(x)
@@ -94,7 +95,7 @@ class SingleS4Regression(SingleS4):
         )
         self.decoder = nn.Sequential(
             nn.Linear(d_model, d_output), nn.Tanh()  # nn.atanh
-        )
+        ).to(self.device)
 
 
 class SingleS4Classifier(SingleS4):
@@ -121,4 +122,4 @@ class SingleS4Classifier(SingleS4):
         )
         self.decoder = nn.Sequential(
             nn.Linear(d_model, d_output), nn.LogSoftmax(dim=dim)
-        )
+        ).to(self.device)
